@@ -10,9 +10,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var CarData []Car
+type Service struct {
+	CarData []Car
+}
 
-func CreateCar(w http.ResponseWriter, r *http.Request) {
+func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -34,21 +36,21 @@ func CreateCar(w http.ResponseWriter, r *http.Request) {
 	ID := uuid.NewV4()
 	car.ID = ID.String()
 
-	CarData = append(CarData, car)
+	s.CarData = append(s.CarData, car)
 	if err = json.NewEncoder(w).Encode(&car); err != nil {
 		log.Printf("CreateCar: Unable to encode %v", car)
 	}
 }
 
-func Cars(w http.ResponseWriter, r *http.Request) {
+func (s *Service) ListCars(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(CarData); err != nil {
+	if err := json.NewEncoder(w).Encode(s.CarData); err != nil {
 		log.Printf("Cars: Unable to encode cars %v", err)
 	}
 }
 
-func GetCar(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetCar(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -70,7 +72,7 @@ func GetCar(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 
-		for _, v := range CarData {
+		for _, v := range s.CarData {
 			if v.ID == reqID {
 
 				if err := json.NewEncoder(w).Encode(v); err != nil {
@@ -92,7 +94,7 @@ func GetCar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DeleteCar(w http.ResponseWriter, r *http.Request) {
+func (s *Service) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	reqID := params["id"]
@@ -113,9 +115,9 @@ func DeleteCar(w http.ResponseWriter, r *http.Request) {
 		return
 
 	} else {
-		for i, v := range CarData {
+		for i, v := range s.CarData {
 			if v.ID == reqID {
-				CarData = append(CarData[:i], CarData[i+1:]...)
+				s.CarData = append(s.CarData[:i], s.CarData[i+1:]...)
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}
@@ -134,7 +136,7 @@ func DeleteCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
-func SearchByMake(w http.ResponseWriter, r *http.Request) {
+func (s *Service) SearchByMake(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -154,7 +156,7 @@ func SearchByMake(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cars := make([]Car, 0)
-	for _, v := range CarData {
+	for _, v := range s.CarData {
 		if v.Make == name {
 			cars = append(cars, v)
 		}
