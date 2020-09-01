@@ -108,6 +108,12 @@ func TestCreateCarErrors(t *testing.T) {
 			handler := http.HandlerFunc(service.CreateCar)
 			handler.ServeHTTP(respRec, req)
 
+			got :=respRec.Code 
+			want := test.statusWant 
+			if got != want {
+				t.Errorf("Expected Statuscode %v, got %v", want, got)
+			}
+			//  TODO check on http statuscode 
 		})
 	}
 }

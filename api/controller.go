@@ -14,30 +14,37 @@ type Service struct {
 	CarData []Car
 }
 
+func writeErrorResponse(w http.ResponseWriter, statusCode int, msg string){
+
+	w.WriteHeader(statusCode)
+	errResp := ErrorResponse{
+		Code:    statusCode,
+		Message: msg,
+	}
+	
+	if err := json.NewEncoder(w).Encode(errResp); err != nil {
+		log.Printf("Unable to encode error response: %v", errResp)
+	}
+}
+
 func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
 	var car Car
-	err := json.NewDecoder(r.Body).Decode(&car)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		errResp := ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Unable to read body. Body JSON format: {  'model' : 'string', 'make': 'string', 'variant' : 'string' }",
-		}
-
-		if err := json.NewEncoder(w).Encode(errResp); err != nil {
-			log.Printf("CreateCar: Unable to encode %v", errResp)
-		}
+	if err := json.NewDecoder(r.Body).Decode(&car); err != nil {
+		writeErrorResponse(w, http.StatusBadRequest, "Unable to read body. Body JSON format: {  'model' : 'string', 'make': 'string', 'variant' : 'string' }")
 		return
 	}
 
-	ID := uuid.NewV4()
-	car.ID = ID.String()
+	if len(car.Make) == 0 || len(car.Model) == 0  {
+		writeErrorResponse(w, http.StatusBadRequest, "Model and Make are mandatory attributes.")
+	}
 
+	car.ID = uuid.NewV4().String()
 	s.CarData = append(s.CarData, car)
-	if err = json.NewEncoder(w).Encode(&car); err != nil {
+
+	if err := json.NewEncoder(w).Encode(&car); err != nil {
 		log.Printf("CreateCar: Unable to encode %v", car)
 	}
 }
@@ -56,25 +63,14 @@ func (s *Service) GetCar(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	reqID := params["id"]
 
-	_, err := uuid.FromString(reqID)
-	if err != nil {
-
-		w.WriteHeader(http.StatusBadRequest)
-		errResp := ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Unable to read ID. Please use UUID using RFC 4122 standard",
-		}
-
-		if err := json.NewEncoder(w).Encode(errResp); err != nil {
-			log.Printf("CreateCar: Unable to encode %v", errResp)
-		}
-
+	if _, err := uuid.FromString(reqID); err != nil {
+		writeErrorResponse(w, http.StatusBadRequest, "Unable to read ID. Please use UUID using RFC 4122 standard")
 		return
+
 	} else {
 
 		for _, v := range s.CarData {
 			if v.ID == reqID {
-
 				if err := json.NewEncoder(w).Encode(v); err != nil {
 					log.Printf("GetCar: Unable to encode car %v", err)
 				}
@@ -83,35 +79,16 @@ func (s *Service) GetCar(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(http.StatusNotFound)
-	errResp := ErrorResponse{
-		Code:    http.StatusNotFound,
-		Message: fmt.Sprintf("Car with ID %v not found", reqID),
-	}
-
-	if err := json.NewEncoder(w).Encode(errResp); err != nil {
-		log.Printf("GetCar: Unable to encode %v", errResp)
-	}
+	writeErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Car with ID %v not found", reqID))
 }
 
 func (s *Service) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	reqID := params["id"]
-
-	_, err := uuid.FromString(reqID)
-	if err != nil {
-
-		w.WriteHeader(http.StatusBadRequest)
-		errResp := ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Unable to read ID. Please use UUID using RFC 4122 standard",
-		}
-
-		if err := json.NewEncoder(w).Encode(errResp); err != nil {
-			log.Printf("CreateCar: Unable to encode %v", errResp)
-		}
-
+	
+	if _, err := uuid.FromString(reqID); err != nil {
+		writeErrorResponse(w, http.StatusBadRequest, "Unable to read ID. Please use UUID using RFC 4122 standard")
 		return
 
 	} else {
@@ -123,16 +100,7 @@ func (s *Service) DeleteCar(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		w.WriteHeader(http.StatusNotFound)
-		errResp := ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: fmt.Sprintf("Car with ID %v does not exist", reqID),
-		}
-
-		if err := json.NewEncoder(w).Encode(errResp); err != nil {
-			log.Printf("CreateCar: Unable to encode %v", errResp)
-		}
-
+		writeErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Car with ID %v does not exist", reqID))
 	}
 
 }
@@ -140,18 +108,10 @@ func (s *Service) SearchByMake(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	name := params["name"]
+	name := params["make"]
 
 	if len(name) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		errResp := ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Make cant be empty.",
-		}
-
-		if err := json.NewEncoder(w).Encode(errResp); err != nil {
-			log.Printf("SearchByMake: Unable to encode %v", errResp)
-		}
+		writeErrorResponse(w, http.StatusBadRequest, "Attribute: Make cant be empty.")
 		return
 	}
 
@@ -170,13 +130,5 @@ func (s *Service) SearchByMake(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNotFound)
-	errResp := ErrorResponse{
-		Code:    http.StatusNotFound,
-		Message: fmt.Sprintf("Was not able to find car with name: %v.", name),
-	}
-
-	if err := json.NewEncoder(w).Encode(errResp); err != nil {
-		log.Printf("SearchByMake: Unable to encode %v", errResp)
-	}
+	writeErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Was not able to find car with name: %v.", name))
 }
