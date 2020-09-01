@@ -13,6 +13,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+
+
 func main() {
 
 	service := api.Service{
@@ -34,7 +36,7 @@ func main() {
 	r.HandleFunc("/cars", service.ListCars).Methods("GET")
 	r.HandleFunc("/cars/{id}", service.GetCar).Methods("GET")
 	r.HandleFunc("/cars/{id}", service.DeleteCar).Methods("DELETE")
-	r.HandleFunc("/search/{name}", service.SearchByMake).Methods("GET")
+	r.HandleFunc("/search/{make}", service.SearchByMake).Methods("GET")
 
 	server := &http.Server{
 		Handler: r, 
