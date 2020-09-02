@@ -9,11 +9,8 @@ import (
 	"time"
 	"workspace-go/coding-challange/car-api/api"
 
-
 	"github.com/gorilla/mux"
 )
-
-
 
 func main() {
 
@@ -39,8 +36,8 @@ func main() {
 	r.HandleFunc("/search/{make}", service.SearchByMake).Methods("GET")
 
 	server := &http.Server{
-		Handler: r, 
-		Addr:    "127.0.0.1:8080",
+		Handler:      r,
+		Addr:         ":8080",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -48,14 +45,13 @@ func main() {
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	
+
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
 
-	
 	log.Print("Server Running")
 	<-done
 	log.Print("Server Stopped Running")

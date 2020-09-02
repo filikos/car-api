@@ -1,0 +1,30 @@
+version: "3"
+services:
+  database:
+    image: postgres
+    environment:
+      POSTGRES_DB: dev
+      POSTGRES_USER: postgresUser
+      POSTGRES_PASSWORD: postgresPass
+    ports:
+      - 5432:5432
+    networks: 
+     - privateNetwork  
+  app:
+    build: .
+    command: ["go", "run", "main.go"]
+    volumes:
+      - .:/app
+    depends_on:
+      - database
+    ports:
+      - "8080:8080"
+    networks:
+      - publicNetwork
+      - privateNetwork
+networks:
+  publicNetwork:
+    internal: false
+  privateNetwork:
+    internal: true
+
