@@ -8,6 +8,8 @@ services:
       POSTGRES_PASSWORD: postgresPass
     ports:
       - 5432:5432
+    networks: 
+     - privateNetwork  
   app:
     build: .
     command: ["go", "run", "main.go"]
@@ -17,3 +19,12 @@ services:
       - database
     ports:
       - "8080:8080"
+    networks:
+      - publicNetwork
+      - privateNetwork
+networks:
+  publicNetwork:
+    internal: false
+  privateNetwork:
+    internal: true
+
