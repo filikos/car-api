@@ -9,23 +9,28 @@ import (
 	"testing"
 	"workspace-go/coding-challange/car-api/api"
 	"workspace-go/coding-challange/car-api/model"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestGetCars(t *testing.T) {
+func TestListCars(t *testing.T) {
 
-	service := api.Service{
-		CarData: []model.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
 			{ID: "4", Model: "S", Make: "tesla", Variant: "sport"},
 		},
 	}
+	
+	service := api.Service{
+		Connector: &mockConnector,
+	}
 
 	req, err := http.NewRequest("GET", "/cars", nil)
-	if err != nil {
-		t.Fail()
-	}
+	assert.Nil(t,err)
+
 
 	respRec := httptest.NewRecorder()
 	handler := http.HandlerFunc(service.ListCars)
@@ -40,24 +45,26 @@ func TestGetCars(t *testing.T) {
 
 	var respContent []model.Car
 	err = json.NewDecoder(respRec.Body).Decode(&respContent)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t,err)
 
-	if !reflect.DeepEqual(respContent, service.CarData) {
+	if !reflect.DeepEqual(respContent, service.Connector.ListCars()) {
 		t.Error("Response data does not equal service data")
 	}
 }
 
 func TestCreateCarErrors(t *testing.T) {
 
-	service := api.Service{
-		CarData: []model.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
 			{ID: "4", Model: "S", Make: "tesla", Variant: "sport"},
 		},
+	}
+	
+	service := api.Service{
+		Connector: &mockConnector,
 	}
 
 	var tests = []struct {
@@ -114,20 +121,23 @@ func TestCreateCarErrors(t *testing.T) {
 			if got != want {
 				t.Errorf("Expected Statuscode %v, got %v", want, got)
 			}
-			//  TODO check on http statuscode
 		})
 	}
 }
 
 func TestCreateCar(t *testing.T) {
 
-	service := api.Service{
-		CarData: []model.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
 			{ID: "4", Model: "S", Make: "tesla", Variant: "sport"},
 		},
+	}
+	
+	service := api.Service{
+		Connector: &mockConnector,
 	}
 
 	want := model.Car{
@@ -139,14 +149,10 @@ func TestCreateCar(t *testing.T) {
 
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(want)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t,err)
 
 	req, err := http.NewRequest("POST", "/createCar", b)
-	if err != nil {
-		t.Fail()
-	}
+	assert.Nil(t,err)
 
 	respRec := httptest.NewRecorder()
 	handler := http.HandlerFunc(service.CreateCar)
@@ -161,9 +167,7 @@ func TestCreateCar(t *testing.T) {
 
 	var respContent model.Car
 	err = json.NewDecoder(respRec.Body).Decode(&respContent)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t,err)
 
 	if want.Make != respContent.Make {
 		t.Error("Property was not set")

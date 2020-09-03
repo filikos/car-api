@@ -12,7 +12,6 @@ import (
 	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/gorilla/mux"
-	"github.com/urfave/cli/v2"
 )
 
 func main() {
@@ -22,30 +21,8 @@ func main() {
 		os.Exit(1)
 	}*/
 
-	app := &cli.App{}
-	
-	app.Flags = []cli.Flag{
-					&cli.StringFlag{
-					Name: "lang",
-					Value: "english",
-					Usage: "language for the greeting",
-					},
-					&cli.BoolFlag{
-						Name: "mock",
-						Value: false,
-						Usage: "Boolean flag 'mock'. Activates mock-mode, data stored in memory",
-						FilePath: "",
-					},
-	  			}
-
-
-	err := app.Run(os.Args)
-	if err != nil {
-	 log.Fatal(err)
-	}
-
-	service := api.Service{
-		CarData: []model.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -54,7 +31,10 @@ func main() {
 			{ID: "6", Model: "X", Make: "tesla", Variant: "midnight"},
 			{ID: "7", Model: "Y", Make: "tesla", Variant: "standart"},
 		},
-		//Database: *db,
+	}
+	
+	service := api.Service{
+		Connector: &mockConnector,
 	}
 
 	r := mux.NewRouter()

@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	connector Controller
+	Connector Controller
 }
 
 
@@ -44,7 +44,7 @@ func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	car.ID = uuid.NewV4().String()
-	s.connector.AddCar(car)
+	s.Connector.AddCar(car)
 
 	if err := json.NewEncoder(w).Encode(&car); err != nil {
 		log.Printf("CreateCar: Unable to encode %v", car)
@@ -54,7 +54,7 @@ func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 func (s *Service) ListCars(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(s.connector.ListCars); err != nil {
+	if err := json.NewEncoder(w).Encode(s.Connector.ListCars()); err != nil {
 		log.Printf("Cars: Unable to encode cars %v", err)
 	}
 }
@@ -70,10 +70,11 @@ func (s *Service) GetCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}  
 
-	car, err := s.connector.GetCar(reqID)
+	car, err := s.Connector.GetCar(reqID)
 	if err != nil {
 		log.Println(err)
 		writeErrorResponse(w, http.StatusNotFound, err.Error())
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(*car); err != nil {
@@ -93,15 +94,14 @@ func (s *Service) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	} 
 		
-	err := s.connector.DeleteCar(reqID)
-		if err != nil {
-			log.Println(err)
-			writeErrorResponse(w, http.StatusNotFound, err.Error())
-			return
-		}
+	err := s.Connector.DeleteCar(reqID)
+	if err != nil {
+		log.Println(err)
+		writeErrorResponse(w, http.StatusNotFound, err.Error())
+		return
+	}
 
 	w.WriteHeader(http.StatusNoContent)	
-
 }
 
 
@@ -116,7 +116,7 @@ func (s *Service) SearchByMake(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cars := s.connector.GetByMake(makeValue)
+	cars := s.Connector.GetByMake(makeValue)
 	if err := json.NewEncoder(w).Encode(cars); err != nil {
 		log.Printf("SearchByMake: Unable to encode %v", cars)
 	}

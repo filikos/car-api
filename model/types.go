@@ -1,16 +1,18 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Car struct {
 	ID      string `json:"id"`
 	Model   string `json:"model"`
 	Make    string `json:"make"`
-	Variant string `json:"variant"`
+	Variant string `json:"variant,omitempty"`
 	// TODO: Add car properties
 }
 
-type Cars []Car 
+type Cars []Car
 
 type ErrorResponse struct {
 	Code    int    `json:"code"`
@@ -26,7 +28,7 @@ func (c *Cars) GetCar(ID string) (*Car, error) {
 
 	for _, car := range *c {
 		if car.ID == ID {
-			return &car,nil
+			return &car, nil
 		}
 	}
 
@@ -35,14 +37,14 @@ func (c *Cars) GetCar(ID string) (*Car, error) {
 
 func (c *Cars) Delete(ID string) error {
 
-	if c != nil {
-		cars := make(Cars, len(*c)-1)
-		for _, car := range *c {
-			if car.ID != ID {
-				cars = append(cars, car)
-			}
+	cars := make(Cars, 0)
+	for _, car := range *c {
+		if car.ID != ID {
+			cars = append(cars, car)
 		}
+	}
 
+	if len(*c)-1 == len(cars) {
 		*c = cars
 		return nil
 	}
@@ -52,9 +54,9 @@ func (c *Cars) Delete(ID string) error {
 
 func (c *Cars) GetByMake(makeValue string) Cars {
 
-	var cars Cars
+	cars := make(Cars, 0)
 	for _, car := range *c {
-		if car.Make != makeValue {
+		if car.Make == makeValue {
 			cars = append(cars, car)
 		}
 	}

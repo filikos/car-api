@@ -3,31 +3,31 @@ package api
 import "workspace-go/coding-challange/car-api/model"
 
 type MockConnector struct {
-	data *model.Cars
+	Data model.Cars
 }
 
 func (mock *MockConnector) AddCar(newCar model.Car) (*model.Car, error) {
 
-	mock.data.AddCar(newCar)
+	mock.Data.AddCar(newCar)
 	return &newCar, nil
 }
 
 func (mock *MockConnector) GetCar(ID string) (*model.Car, error) {
 
-	return mock.data.GetCar(ID)
+	return mock.Data.GetCar(ID)
 }
 
 func (mock *MockConnector) DeleteCar(ID string) error {
 
-	return mock.data.Delete(ID)
+	return mock.Data.Delete(ID)
 }
 
 func (mock *MockConnector) ListCars() model.Cars {
 
-	return *mock.data
+	return mock.Data
 }
 
 func (mock *MockConnector) GetByMake(makeValue string) model.Cars {
 
-	return mock.data.GetByMake(makeValue)
+	return mock.Data.GetByMake(makeValue)
 }
