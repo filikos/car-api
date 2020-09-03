@@ -8,12 +8,13 @@ import (
 	"reflect"
 	"testing"
 	"workspace-go/coding-challange/car-api/api"
+	"workspace-go/coding-challange/car-api/model"
 )
 
 func TestGetCars(t *testing.T) {
 
 	service := api.Service{
-		CarData: []api.Car{
+		CarData: []model.Car{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -37,7 +38,7 @@ func TestGetCars(t *testing.T) {
 		t.Errorf("Expected Statuscode %v, got %v", want, got)
 	}
 
-	var respContent []api.Car
+	var respContent []model.Car
 	err = json.NewDecoder(respRec.Body).Decode(&respContent)
 	if err != nil {
 		t.Error(err)
@@ -51,7 +52,7 @@ func TestGetCars(t *testing.T) {
 func TestCreateCarErrors(t *testing.T) {
 
 	service := api.Service{
-		CarData: []api.Car{
+		CarData: []model.Car{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -89,7 +90,7 @@ func TestCreateCarErrors(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 
-			reqCar := api.Car{}
+			reqCar := model.Car{}
 			reqCar.Model = test.inputModel
 			reqCar.Make = test.inputMake
 
@@ -108,20 +109,20 @@ func TestCreateCarErrors(t *testing.T) {
 			handler := http.HandlerFunc(service.CreateCar)
 			handler.ServeHTTP(respRec, req)
 
-			got :=respRec.Code 
-			want := test.statusWant 
+			got := respRec.Code
+			want := test.statusWant
 			if got != want {
 				t.Errorf("Expected Statuscode %v, got %v", want, got)
 			}
-			//  TODO check on http statuscode 
+			//  TODO check on http statuscode
 		})
 	}
 }
 
-func TestCreateCar(t *testing.T){
+func TestCreateCar(t *testing.T) {
 
 	service := api.Service{
-		CarData: []api.Car{
+		CarData: []model.Car{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -129,17 +130,17 @@ func TestCreateCar(t *testing.T){
 		},
 	}
 
-	want := api.Car{
-		ID: "",
-		Make: "MyCar",
-		Model: "MyCarModel",
+	want := model.Car{
+		ID:      "",
+		Make:    "MyCar",
+		Model:   "MyCarModel",
 		Variant: "sport",
 	}
 
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(want)
 	if err != nil {
-				t.Error(err)
+		t.Error(err)
 	}
 
 	req, err := http.NewRequest("POST", "/createCar", b)
@@ -157,8 +158,8 @@ func TestCreateCar(t *testing.T){
 	if wantStatus != got {
 		t.Errorf("Expected Statuscode %v, got %v", wantStatus, got)
 	}
-	
-	var respContent api.Car
+
+	var respContent model.Car
 	err = json.NewDecoder(respRec.Body).Decode(&respContent)
 	if err != nil {
 		t.Error(err)

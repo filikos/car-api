@@ -1,4 +1,4 @@
-package api
+package model
 
 type Car struct {
 	ID      string `json:"id"`
@@ -6,6 +6,10 @@ type Car struct {
 	Make    string `json:"make"`
 	Variant string `json:"variant"`
 	// TODO: Add car properties
+}
+
+type Cars struct {
+	Cars []Car `json:"cars"`
 }
 
 type ErrorResponse struct {

@@ -5,23 +5,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"workspace-go/coding-challange/car-api/db"
+	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
 )
 
 type Service struct {
-	CarData []Car
+	CarData  []model.Car
+	Database db.Database
 }
 
-func writeErrorResponse(w http.ResponseWriter, statusCode int, msg string){
+func writeErrorResponse(w http.ResponseWriter, statusCode int, msg string) {
 
 	w.WriteHeader(statusCode)
-	errResp := ErrorResponse{
+	errResp := model.ErrorResponse{
 		Code:    statusCode,
 		Message: msg,
 	}
-	
+
 	if err := json.NewEncoder(w).Encode(errResp); err != nil {
 		log.Printf("Unable to encode error response: %v", errResp)
 	}
@@ -31,13 +34,13 @@ func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	var car Car
+	var car model.Car
 	if err := json.NewDecoder(r.Body).Decode(&car); err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, "Unable to read body. Body JSON format: {  'model' : 'string', 'make': 'string', 'variant' : 'string' }")
 		return
 	}
 
-	if len(car.Make) == 0 || len(car.Model) == 0  {
+	if len(car.Make) == 0 || len(car.Model) == 0 {
 		writeErrorResponse(w, http.StatusBadRequest, "Model and Make are mandatory attributes.")
 	}
 
@@ -86,7 +89,7 @@ func (s *Service) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	reqID := params["id"]
-	
+
 	if _, err := uuid.FromString(reqID); err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, "Unable to read ID. Please use UUID using RFC 4122 standard")
 		return
@@ -115,7 +118,7 @@ func (s *Service) SearchByMake(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cars := make([]Car, 0)
+	cars := make([]model.Car, 0)
 	for _, v := range s.CarData {
 		if v.Make == name {
 			cars = append(cars, v)

@@ -9,13 +9,20 @@ import (
 	"time"
 	"workspace-go/coding-challange/car-api/api"
 
+	"workspace-go/coding-challange/car-api/model"
+
 	"github.com/gorilla/mux"
 )
 
 func main() {
 
+	/*db, err := db.InitDB("./config/dbConfig.env")
+	if err != nil {
+		os.Exit(1)
+	}*/
+
 	service := api.Service{
-		CarData: []api.Car{
+		CarData: []model.Car{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -24,6 +31,7 @@ func main() {
 			{ID: "6", Model: "X", Make: "tesla", Variant: "midnight"},
 			{ID: "7", Model: "Y", Make: "tesla", Variant: "standart"},
 		},
+		//Database: *db,
 	}
 
 	r := mux.NewRouter()
