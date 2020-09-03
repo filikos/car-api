@@ -12,6 +12,7 @@ import (
 	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/gorilla/mux"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
@@ -20,6 +21,28 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}*/
+
+	app := &cli.App{}
+	
+	app.Flags = []cli.Flag{
+					&cli.StringFlag{
+					Name: "lang",
+					Value: "english",
+					Usage: "language for the greeting",
+					},
+					&cli.BoolFlag{
+						Name: "mock",
+						Value: false,
+						Usage: "Boolean flag 'mock'. Activates mock-mode, data stored in memory",
+						FilePath: "",
+					},
+	  			}
+
+
+	err := app.Run(os.Args)
+	if err != nil {
+	 log.Fatal(err)
+	}
 
 	service := api.Service{
 		CarData: []model.Car{

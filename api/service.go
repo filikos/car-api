@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"workspace-go/coding-challange/car-api/db"
 	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/gorilla/mux"
@@ -13,9 +12,10 @@ import (
 )
 
 type Service struct {
-	CarData  []model.Car
-	Database db.Database
+	connector Controller
 }
+
+
 
 func writeErrorResponse(w http.ResponseWriter, statusCode int, msg string) {
 
@@ -46,6 +46,7 @@ func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 
 	car.ID = uuid.NewV4().String()
 	s.CarData = append(s.CarData, car)
+	s.connector.AddCar(car)
 
 	if err := json.NewEncoder(w).Encode(&car); err != nil {
 		log.Printf("CreateCar: Unable to encode %v", car)
