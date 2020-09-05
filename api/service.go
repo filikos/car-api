@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"workspace-go/coding-challange/car-api/model"
@@ -33,21 +34,26 @@ func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	var car model.Car
-	if err := json.NewDecoder(r.Body).Decode(&car); err != nil {
+	var newCar model.Car
+	if err := json.NewDecoder(r.Body).Decode(&newCar); err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, "Unable to read body. Body JSON format: {  'model' : 'string', 'make': 'string', 'variant' : 'string' }")
 		return
 	}
 
-	if len(car.Make) == 0 || len(car.Model) == 0 {
+	if len(newCar.Make) == 0 || len(newCar.Model) == 0 {
 		writeErrorResponse(w, http.StatusBadRequest, "Model and Make are mandatory attributes.")
 	}
 
-	car.ID = uuid.NewV4().String()
-	s.Connector.AddCar(car)
+	newCar.ID = uuid.NewV4().String()
+	car, err := s.Connector.AddCar(newCar)
+	if err != nil {
+		fmt.Println(err)
+		writeErrorResponse(w, http.StatusInternalServerError, "Unable to createCar.")
+		return
+	}
 
 	if err := json.NewEncoder(w).Encode(&car); err != nil {
-		log.Printf("CreateCar: Unable to encode %v", car)
+		log.Printf("CreateCar: Unable to encode %v", newCar)
 	}
 }
 
@@ -73,7 +79,7 @@ func (s *Service) GetCar(w http.ResponseWriter, r *http.Request) {
 	car, err := s.Connector.GetCar(reqID)
 	if err != nil {
 		log.Println(err)
-		writeErrorResponse(w, http.StatusNotFound, err.Error())
+		writeErrorResponse(w, http.StatusNotFound, "Unable to getCar.")
 		return
 	}
 

@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 	"workspace-go/coding-challange/car-api/api"
+	"workspace-go/coding-challange/car-api/db"
 
 	"workspace-go/coding-challange/car-api/model"
-	"workspace-go/coding-challange/car-api/db"
 
 	"github.com/gorilla/mux"
 	"github.com/urfave/cli/v2"
@@ -55,6 +55,8 @@ func main() {
 				},
 			}
 		} else {
+
+			// TODO: read path from CLI tool
 			db, err := db.InitDB("./config/dbConfig.env")
 			if err != nil {
 				log.Printf("Failed to connect database. Server will be shut down. Error: %v", err)
@@ -110,8 +112,7 @@ func startServer(service api.Service, port int) {
 	}()
 
 	log.Printf("Server Running on port: %v", port)
+	defer service.Connector.CloseConnection()
 	<-done
 	log.Println("Server Stopped")
-	log.Println("shutting down...")
-	os.Exit(0)
 }

@@ -1,13 +1,17 @@
 package api
 
-import "workspace-go/coding-challange/car-api/model"
+import (
+	"workspace-go/coding-challange/car-api/model"
+)
 
 type MockConnector struct {
 	Data model.Cars
 }
 
-func (mock *MockConnector) AddCar(newCar model.Car) (*model.Car, error) {
+func (mock *MockConnector) CloseConnection() {
+}
 
+func (mock *MockConnector) AddCar(newCar model.Car) (*model.Car, error) {
 	mock.Data.AddCar(newCar)
 	return &newCar, nil
 }
