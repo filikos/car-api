@@ -3,11 +3,12 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	
 	"os"
 	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 	_ "github.com/lib/pq"
 )
 
@@ -29,8 +30,6 @@ func InitDB(configPath string) (*Database, error) {
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 
 	url := fmt.Sprintf("user=%v dbname=%v host=%v port=%v password=%v sslmode=disable", dbUser, dbName, dbHost, dbPort, dbPassword)
-	//url := fmt.Sprintf("postgres://%v:%v@%v/%v?sslmode=disable", dbUser, dbPassword, dbHost, dbName, , dbPort)
-	fmt.Println(url)
 	conn, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func InitDB(configPath string) (*Database, error) {
 		return nil, err
 	}
 
-	log.Printf("Database connection established")
+	log.Info("Database connection established")
 	return db, nil
 }
 
@@ -92,7 +91,7 @@ func (db *Database) ListCars() model.Cars {
 
 	rows, err := db.Conn.Query("SELECT * FROM cars")
 	if err != nil {
-		fmt.Printf("Query: Unable to listCars: %v", err)
+		log.Warnf("Query: Unable to listCars: %v", err)
 		return nil
 	}
 
@@ -104,7 +103,7 @@ func (db *Database) ListCars() model.Cars {
 		var car model.Car
 		err := rows.Scan(&car.ID, &car.Model, &car.Make, &car.Variant)
 		if err != nil {
-			fmt.Println(err)
+			log.Info(fmt.Sprintf("Unable to scan row:%v", err))
 			continue
 		}
 
@@ -118,7 +117,7 @@ func (db *Database) GetByMake(makeValue string) model.Cars {
 
 	rows, err := db.Conn.Query("SELECT * FROM cars WHERE make = $1", makeValue)
 	if err != nil {
-		fmt.Printf("Query: Unable to GetByMake: %v", err)
+		log.Warnf("Query: Unable to GetByMake: %v", err)
 		return nil
 	}
 
@@ -130,7 +129,7 @@ func (db *Database) GetByMake(makeValue string) model.Cars {
 		var car model.Car
 		err := rows.Scan(&car.ID, &car.Model, &car.Make, &car.Variant)
 		if err != nil {
-			fmt.Println(err)
+			log.Info(fmt.Sprintf("Unable to scan row: %v", err))
 			continue
 		}
 

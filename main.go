@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +13,7 @@ import (
 	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,14 +34,25 @@ func main() {
 				Value:       false,
 				DefaultText: "API will use DB connection",
 			},
+			&cli.BoolFlag{
+				Name:        "verbose",
+				Usage:       "Set 'true' to enable verbose DEBUG-level logging.",
+				Value:       false,
+				DefaultText: "Logging on WARN-level",
+			},
 		},
 	}
-
-	port := 8080
+	
+	log.SetFormatter(&log.JSONFormatter{})
 	var connector api.Controller
 	app.Action = func(c *cli.Context) error {
 
-		port = c.Int("port")
+		if c.Bool("verbose") {
+			log.SetLevel(log.DebugLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
+
 		if c.Bool("mockmode") {
 			connector = &api.MockConnector{
 				Data: model.Cars{
@@ -59,7 +70,7 @@ func main() {
 			// TODO: read path from CLI tool
 			db, err := db.InitDB("./config/dbConfig.env")
 			if err != nil {
-				log.Printf("Failed to connect database. Server will be shut down. Error: %v", err)
+				log.Errorf("Failed to connect database. Server will be shut down. Error: %v", err)
 				os.Exit(0)
 			}
 
@@ -72,7 +83,7 @@ func main() {
 			Connector: connector,
 		}
 
-		startServer(service, port)
+		startServer(service, c.Int("port"))
 		return nil
 	}
 
@@ -107,12 +118,12 @@ func startServer(service api.Service, port int) {
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
-			log.Println(err)
+			log.Fatal(err)
 		}
 	}()
-
-	log.Printf("Server Running on port: %v", port)
+	
+	log.Info(fmt.Sprintf("Server Running on port: %v", port))
 	defer service.Connector.CloseConnection()
 	<-done
-	log.Println("Server Stopped")
+	log.Info("Server Stopped")
 }
