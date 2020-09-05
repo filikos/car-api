@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"workspace-go/coding-challange/car-api/api"
+	"workspace-go/coding-challange/car-api/model"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestGetCars(t *testing.T) {
+func TestListCars(t *testing.T) {
 
-	service := api.Service{
-		CarData: []api.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -21,10 +23,12 @@ func TestGetCars(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "/cars", nil)
-	if err != nil {
-		t.Fail()
+	service := api.Service{
+		Connector: &mockConnector,
 	}
+
+	req, err := http.NewRequest("GET", "/cars", nil)
+	assert.Nil(t, err)
 
 	respRec := httptest.NewRecorder()
 	handler := http.HandlerFunc(service.ListCars)
@@ -32,31 +36,29 @@ func TestGetCars(t *testing.T) {
 
 	want := http.StatusOK
 	got := respRec.Code
+	assert.Equal(t, got, want)
 
-	if want != got {
-		t.Errorf("Expected Statuscode %v, got %v", want, got)
-	}
+	var gotCars model.Cars
+	err = json.NewDecoder(respRec.Body).Decode(&gotCars)
+	assert.Nil(t, err)
 
-	var respContent []api.Car
-	err = json.NewDecoder(respRec.Body).Decode(&respContent)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !reflect.DeepEqual(respContent, service.CarData) {
-		t.Error("Response data does not equal service data")
-	}
+	wantCars := service.Connector.ListCars()
+	assert.Equal(t, gotCars, wantCars)
 }
 
 func TestCreateCarErrors(t *testing.T) {
 
-	service := api.Service{
-		CarData: []api.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
 			{ID: "4", Model: "S", Make: "tesla", Variant: "sport"},
 		},
+	}
+
+	service := api.Service{
+		Connector: &mockConnector,
 	}
 
 	var tests = []struct {
@@ -89,39 +91,32 @@ func TestCreateCarErrors(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 
-			reqCar := api.Car{}
+			reqCar := model.Car{}
 			reqCar.Model = test.inputModel
 			reqCar.Make = test.inputMake
 
 			b := new(bytes.Buffer)
 			err := json.NewEncoder(b).Encode(reqCar)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.Nil(t, err)
 
 			req, err := http.NewRequest("POST", "/createCar", b)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.Nil(t, err)
 
 			respRec := httptest.NewRecorder()
 			handler := http.HandlerFunc(service.CreateCar)
 			handler.ServeHTTP(respRec, req)
 
-			got :=respRec.Code 
-			want := test.statusWant 
-			if got != want {
-				t.Errorf("Expected Statuscode %v, got %v", want, got)
-			}
-			//  TODO check on http statuscode 
+			got := respRec.Code
+			want := test.statusWant
+			assert.Equal(t, got, want)
 		})
 	}
 }
 
-func TestCreateCar(t *testing.T){
+func TestCreateCar(t *testing.T) {
 
-	service := api.Service{
-		CarData: []api.Car{
+	mockConnector := api.MockConnector{
+		Data: model.Cars{
 			{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
 			{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
 			{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
@@ -129,50 +124,38 @@ func TestCreateCar(t *testing.T){
 		},
 	}
 
-	want := api.Car{
-		ID: "",
-		Make: "MyCar",
-		Model: "MyCarModel",
+	service := api.Service{
+		Connector: &mockConnector,
+	}
+
+	wantCar := model.Car{
+		ID:      "",
+		Make:    "MyCar",
+		Model:   "MyCarModel",
 		Variant: "sport",
 	}
 
 	b := new(bytes.Buffer)
-	err := json.NewEncoder(b).Encode(want)
-	if err != nil {
-				t.Error(err)
-	}
+	err := json.NewEncoder(b).Encode(wantCar)
+	assert.Nil(t, err)
 
 	req, err := http.NewRequest("POST", "/createCar", b)
-	if err != nil {
-		t.Fail()
-	}
+	assert.Nil(t, err)
 
 	respRec := httptest.NewRecorder()
 	handler := http.HandlerFunc(service.CreateCar)
 	handler.ServeHTTP(respRec, req)
 
 	wantStatus := http.StatusOK
-	got := respRec.Code
+	gotStatus := respRec.Code
+	assert.Equal(t, gotStatus, wantStatus)
 
-	if wantStatus != got {
-		t.Errorf("Expected Statuscode %v, got %v", wantStatus, got)
-	}
+	var gotCar model.Car
+	err = json.NewDecoder(respRec.Body).Decode(&gotCar)
+	assert.Nil(t, err)
+
+	assert.Equal(t,  wantCar.Make, gotCar.Make)
+	assert.Equal(t,  wantCar.Model, gotCar.Model)
+	assert.Equal(t,  wantCar.Variant, gotCar.Variant)
 	
-	var respContent api.Car
-	err = json.NewDecoder(respRec.Body).Decode(&respContent)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if want.Make != respContent.Make {
-		t.Error("Property was not set")
-	}
-
-	if want.Model != respContent.Model {
-		t.Error("Property was not set")
-	}
-
-	if want.Variant != respContent.Variant {
-		t.Error("Property was not set")
-	}
 }

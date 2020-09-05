@@ -5,23 +5,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
 )
 
 type Service struct {
-	CarData []Car
+	Connector Controller
 }
 
-func writeErrorResponse(w http.ResponseWriter, statusCode int, msg string){
+
+
+func writeErrorResponse(w http.ResponseWriter, statusCode int, msg string) {
 
 	w.WriteHeader(statusCode)
-	errResp := ErrorResponse{
+	errResp := model.ErrorResponse{
 		Code:    statusCode,
 		Message: msg,
 	}
-	
+
 	if err := json.NewEncoder(w).Encode(errResp); err != nil {
 		log.Printf("Unable to encode error response: %v", errResp)
 	}
@@ -31,28 +34,33 @@ func (s *Service) CreateCar(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	var car Car
-	if err := json.NewDecoder(r.Body).Decode(&car); err != nil {
+	var newCar model.Car
+	if err := json.NewDecoder(r.Body).Decode(&newCar); err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, "Unable to read body. Body JSON format: {  'model' : 'string', 'make': 'string', 'variant' : 'string' }")
 		return
 	}
 
-	if len(car.Make) == 0 || len(car.Model) == 0  {
+	if len(newCar.Make) == 0 || len(newCar.Model) == 0 {
 		writeErrorResponse(w, http.StatusBadRequest, "Model and Make are mandatory attributes.")
 	}
 
-	car.ID = uuid.NewV4().String()
-	s.CarData = append(s.CarData, car)
+	newCar.ID = uuid.NewV4().String()
+	car, err := s.Connector.AddCar(newCar)
+	if err != nil {
+		fmt.Println(err)
+		writeErrorResponse(w, http.StatusInternalServerError, "Unable to createCar.")
+		return
+	}
 
 	if err := json.NewEncoder(w).Encode(&car); err != nil {
-		log.Printf("CreateCar: Unable to encode %v", car)
+		log.Printf("CreateCar: Unable to encode %v", newCar)
 	}
 }
 
 func (s *Service) ListCars(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(s.CarData); err != nil {
+	if err := json.NewEncoder(w).Encode(s.Connector.ListCars()); err != nil {
 		log.Printf("Cars: Unable to encode cars %v", err)
 	}
 }
@@ -66,69 +74,56 @@ func (s *Service) GetCar(w http.ResponseWriter, r *http.Request) {
 	if _, err := uuid.FromString(reqID); err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, "Unable to read ID. Please use UUID using RFC 4122 standard")
 		return
+	}  
 
-	} else {
-
-		for _, v := range s.CarData {
-			if v.ID == reqID {
-				if err := json.NewEncoder(w).Encode(v); err != nil {
-					log.Printf("GetCar: Unable to encode car %v", err)
-				}
-				return
-			}
-		}
+	car, err := s.Connector.GetCar(reqID)
+	if err != nil {
+		log.Println(err)
+		writeErrorResponse(w, http.StatusNotFound, "Unable to getCar.")
+		return
 	}
 
-	writeErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Car with ID %v not found", reqID))
+	if err := json.NewEncoder(w).Encode(*car); err != nil {
+		log.Printf("GetCar: Unable to encode car %v", err)
+	}
+	
 }
 
 func (s *Service) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	reqID := params["id"]
-	
+
 	if _, err := uuid.FromString(reqID); err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, "Unable to read ID. Please use UUID using RFC 4122 standard")
 		return
 
-	} else {
-		for i, v := range s.CarData {
-			if v.ID == reqID {
-				s.CarData = append(s.CarData[:i], s.CarData[i+1:]...)
-				w.WriteHeader(http.StatusNoContent)
-				return
-			}
-		}
-
-		writeErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Car with ID %v does not exist", reqID))
+	} 
+		
+	err := s.Connector.DeleteCar(reqID)
+	if err != nil {
+		log.Println(err)
+		writeErrorResponse(w, http.StatusNotFound, err.Error())
+		return
 	}
 
+	w.WriteHeader(http.StatusNoContent)	
 }
+
+
 func (s *Service) SearchByMake(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	name := params["make"]
+	makeValue := params["make"]
 
-	if len(name) == 0 {
-		writeErrorResponse(w, http.StatusBadRequest, "Attribute: Make cant be empty.")
+	if len(makeValue) == 0 {
+		writeErrorResponse(w, http.StatusBadRequest, "Attribute 'make' can`t be empty.")
 		return
 	}
 
-	cars := make([]Car, 0)
-	for _, v := range s.CarData {
-		if v.Make == name {
-			cars = append(cars, v)
-		}
+	cars := s.Connector.GetByMake(makeValue)
+	if err := json.NewEncoder(w).Encode(cars); err != nil {
+		log.Printf("SearchByMake: Unable to encode %v", cars)
 	}
-
-	if len(cars) > 0 {
-		if err := json.NewEncoder(w).Encode(cars); err != nil {
-			log.Printf("SearchByMake: Unable to encode %v", cars)
-		}
-
-		return
-	}
-
-	writeErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Was not able to find car with name: %v.", name))
 }

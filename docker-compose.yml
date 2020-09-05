@@ -2,14 +2,14 @@ version: "3"
 services:
   database:
     image: postgres
-    environment:
-      POSTGRES_DB: dev
-      POSTGRES_USER: postgresUser
-      POSTGRES_PASSWORD: postgresPass
+    env_file:
+      - ./config/dbConfig.env
+    volumes:
+      - database-data:/var/lib/postgresql/car-api-data/
     ports:
       - 5432:5432
-    networks: 
-     - privateNetwork  
+    networks:
+      - privateNetwork
   app:
     build: .
     command: ["go", "run", "main.go"]
@@ -27,4 +27,5 @@ networks:
     internal: false
   privateNetwork:
     internal: true
-
+volumes:
+  database-data:

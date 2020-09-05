@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS cars(
-ID PRIMARY KEY,
-Model TEXT,
-Make TEXT,
-Variant TEXT
-);
