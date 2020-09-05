@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"workspace-go/coding-challange/car-api/db"
 	"workspace-go/coding-challange/car-api/model"
+	log "github.com/sirupsen/logrus"
 )
 
 type Controller interface {
@@ -22,7 +23,7 @@ type ConnectorDB struct {
 func (c *ConnectorDB) CloseConnection()  {
 
 	if err := c.Database.Conn.Close(); err != nil {
-		fmt.Printf("Failed to close DB connection: %v",err)
+		log.Warn(fmt.Sprintf("Failed to close DB connection: %v",err))
 	}
 }
 
