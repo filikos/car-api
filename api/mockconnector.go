@@ -3,7 +3,10 @@ package api
 import (
 	"workspace-go/coding-challange/car-api/model"
 )
-
+/*
+	This connector is mocking the database by storing all information in-memory.
+	If there are 3rd party services which are not suitable for development purposes they can be mocked here.
+*/
 type MockConnector struct {
 	Data model.Cars
 }

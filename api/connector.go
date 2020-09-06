@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Interface providing all functions needed to fullfill the services needs.
 type Controller interface {
 	CloseConnection() 
 	AddCar(newCar model.Car) (*model.Car, error)
@@ -16,6 +17,7 @@ type Controller interface {
 	GetByMake(makeValue string) model.Cars
 }
 
+// Connector containing all informations for accessing the database and calls the database functions.
 type ConnectorDB struct {
 	Database db.Database
 }

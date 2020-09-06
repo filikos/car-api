@@ -24,6 +24,7 @@ const(
 
 func main() {
 
+	// Set up CLI application with all available flags.
 	app := &cli.App{
 		Name:    "Car-Management-API",
 		Version: "v0.0.0",
@@ -54,8 +55,11 @@ func main() {
 		},
 	}
 
+
 	log.SetFormatter(&log.JSONFormatter{})
 	var connector api.Controller
+	
+	// Reading the CLI-Arguments, build and start the service
 	app.Action = func(c *cli.Context) error {
 
 		if c.Bool("verbose") {
@@ -80,7 +84,6 @@ func main() {
 
 			var database *db.Database
 			var err error
-
 			for i := 0; i < dbConnectionAttemts; i++ {
 				
 				log.Warn(fmt.Sprintf("Connecting to DB try: %v", i+1))
@@ -118,6 +121,7 @@ func main() {
 
 }
 
+// Setting up routes with handlers and start the server. Will wait for termination signal to perform gracefull shut down.
 func startServer(service api.Service, port int) {
 
 	r := mux.NewRouter()

@@ -11,6 +11,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+/*  
+	Contains all handlers that are reading the requests and writing the responses. 
+	Basic API usage restrictions are implemented here, data will be provided from the connector.
+*/
 type Service struct {
 	Connector Controller
 }

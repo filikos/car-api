@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Provides functionality for initializing and execute database operations.
 type Database struct {
 	Conn *sql.DB
 }
@@ -47,8 +48,6 @@ func InitDB(configPath string) (*Database, error) {
 	return db, nil
 }
 
-// TODO: Add DB operations for endpoints
-
 func (db *Database) AddCar(newCar model.Car) (*model.Car, error) {
 
 	sqlStatement :=
@@ -66,7 +65,6 @@ func (db *Database) AddCar(newCar model.Car) (*model.Car, error) {
 func (db *Database) GetCar(ID string) (*model.Car, error) {
 
 	var car model.Car
-
 	sqlStatement := `SELECT * FROM cars WHERE ID = $1`
 	err := db.Conn.QueryRow(sqlStatement, ID).Scan(&car.ID, &car.Model, &car.Make, &car.Variant)
 	if err != nil {
