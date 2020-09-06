@@ -3,16 +3,18 @@ services:
   database:
     image: postgres
     env_file:
-      - ./config/dbConfig.env
+      - ./config/dbConfigDocker.env
     volumes:
-      - database-data:/var/lib/postgresql/car-api-data/
+      - $HOME/docker/volumes/postgres:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
     networks:
       - privateNetwork
   app:
-    build: .
-    command: ["go", "run", "main.go"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: go run main.go --configPath ./config/dbConfigDocker.env
     volumes:
       - .:/app
     depends_on:
@@ -28,4 +30,4 @@ networks:
   privateNetwork:
     internal: true
 volumes:
-  database-data:
+  postgres:

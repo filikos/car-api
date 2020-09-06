@@ -17,6 +17,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const(
+	dbConnectionAttemts = 5
+	retryInterval = 2
+)
+
 func main() {
 
 	app := &cli.App{
@@ -27,6 +32,12 @@ func main() {
 				Name:  "port",
 				Usage: "Port the Rest-API will listen on.",
 				Value: 8080,
+			},
+			&cli.PathFlag{
+				Name:        "configPath",
+				Usage:       "Path to *.env postgres config file.",
+				Value:       "./config/dbConfig.env",
+				DefaultText: "./config/dbConfig.env",
 			},
 			&cli.BoolFlag{
 				Name:        "mockmode",
@@ -42,7 +53,7 @@ func main() {
 			},
 		},
 	}
-	
+
 	log.SetFormatter(&log.JSONFormatter{})
 	var connector api.Controller
 	app.Action = func(c *cli.Context) error {
@@ -67,15 +78,28 @@ func main() {
 			}
 		} else {
 
-			// TODO: read path from CLI tool
-			db, err := db.InitDB("./config/dbConfig.env")
+			var database *db.Database
+			var err error
+
+			for i := 0; i < dbConnectionAttemts; i++ {
+				
+				log.Warn(fmt.Sprintf("Connecting to DB try: %v", i+1))
+				database, err = db.InitDB(c.Path("configPath"))
+				if err == nil {
+					break
+				}
+
+				time.Sleep(retryInterval * time.Second)
+			}
+
 			if err != nil {
 				log.Errorf("Failed to connect database. Server will be shut down. Error: %v", err)
 				os.Exit(0)
-			}
+			}	
 
+			log.Info("Database connection established.")
 			connector = &api.ConnectorDB{
-				Database: *db,
+				Database: *database,
 			}
 		}
 
@@ -121,7 +145,7 @@ func startServer(service api.Service, port int) {
 			log.Fatal(err)
 		}
 	}()
-	
+
 	log.Info(fmt.Sprintf("Server Running on port: %v", port))
 	defer service.Connector.CloseConnection()
 	<-done
