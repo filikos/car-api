@@ -1,6 +1,53 @@
 # Car-management-api
 This Rest-API provides basic functionality to handle car related data. The API is written in Go and is using PostgreSQL within Docker for persistant data storage.
 
+## Requirements
+- Go v1.14.4
+- Docker
+- PostgreQSL Image
+
+## Run Car-Management-API
+The command `go run main.go` will start the Rest-API which with DB Connection. Ensure that the values set in `./config/dbConfig.env` are matching the PostgreSQL DB configuration. 
+
+If you are using the "mockmode" no configuration is needed since all data will be stored temporary in memory.
+
+`go run main.go -h`
+
+```
+NAME:
+   Car-Management-API - A new cli application
+
+USAGE:
+   main [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.0.0
+
+COMMANDS:
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --port value   Port the Rest-API will listen on. (default: 8080)
+   --mockmode     Set 'true' to use mocked mode. (default: API will use DB connection)
+   --verbose      Set 'true' to enable verbose DEBUG-level logging. (default: Logging on WARN-level)
+   --help, -h     show help (default: false)
+   --version, -v  print the version (default: false)
+   ```
+
+#### Development Environment: 
+For development purposes it is recommended to start the PostgreSQL container first and then the API since it depends on the DB connection. 
+Note: 
+- `cd` into the project path to ensure docker will find the dbConfig.env file.
+- PostgreSQL persistant storage volume path: `$HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres`
+
+
+1. `docker run --name dev --env-file ./config/dbConfig.env -p 5432:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres`
+2. `go run main.go`
+3. *New Terminal* `docker container ls -a`
+4. `docker exec -it *POSTGRES_CONTAINER_ID* psql -U postgres -W postgres`
+
+
+
 ## Ressources 
 <details><summary>POST /createCar</summary>
 <p>
