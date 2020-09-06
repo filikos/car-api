@@ -1,4 +1,6 @@
 # Car-management-api
+v1.0.0
+
 This Rest-API provides basic functionality to handle car related data. The API is written in Go and is using PostgreSQL within Docker for persistant data storage. 
 
 ---
