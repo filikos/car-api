@@ -3,13 +3,13 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	
+
 	"os"
 	"workspace-go/coding-challange/car-api/model"
 
 	"github.com/joho/godotenv"
-	log "github.com/sirupsen/logrus"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 )
 
 type Database struct {
@@ -28,7 +28,7 @@ func InitDB(configPath string) (*Database, error) {
 	dbHost := os.Getenv("POSTGRES_HOST")
 	dbPort := os.Getenv("POSTGRES_PORT")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-
+	
 	url := fmt.Sprintf("user=%v dbname=%v host=%v port=%v password=%v sslmode=disable", dbUser, dbName, dbHost, dbPort, dbPassword)
 	conn, err := sql.Open("postgres", url)
 	if err != nil {
