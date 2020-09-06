@@ -1,54 +1,9 @@
 # Car-management-api
-This Rest-API provides basic functionality to handle car related data. The API is written in Go and is using PostgreSQL within Docker for persistant data storage.
+This Rest-API provides basic functionality to handle car related data. The API is written in Go and is using PostgreSQL within Docker for persistant data storage. 
 
-## Requirements
-- Go v1.14.4
-- Docker
-- PostgreQSL Image
+---
 
-## Run Car-Management-API
-The command `go run main.go` will start the Rest-API which with DB Connection. Ensure that the values set in `./config/dbConfig.env` are matching the PostgreSQL DB configuration. 
-
-If you are using the "mockmode" no configuration is needed since all data will be stored temporary in memory.
-
-`go run main.go -h`
-
-```
-NAME:
-   Car-Management-API - A new cli application
-
-USAGE:
-   main [global options] command [command options] [arguments...]
-
-VERSION:
-   v0.0.0
-
-COMMANDS:
-   help, h  Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --port value   Port the Rest-API will listen on. (default: 8080)
-   --mockmode     Set 'true' to use mocked mode. (default: API will use DB connection)
-   --verbose      Set 'true' to enable verbose DEBUG-level logging. (default: Logging on WARN-level)
-   --help, -h     show help (default: false)
-   --version, -v  print the version (default: false)
-   ```
-
-#### Development Environment: 
-For development purposes it is recommended to start the PostgreSQL container first and then the API since it depends on the DB connection. 
-Note: 
-- `cd` into the project path to ensure docker will find the dbConfig.env file.
-- PostgreSQL persistant storage volume path: `$HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres`
-
-
-1. `docker run --name dev --env-file ./config/dbConfig.env -p 5432:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres`
-2. `go run main.go`
-3. *New Terminal* `docker container ls -a`
-4. `docker exec -it *POSTGRES_CONTAINER_ID* psql -U postgres -W postgres`
-
-
-
-## Ressources 
+## Endpoints
 <details><summary>POST /createCar</summary>
 <p>
 
@@ -214,3 +169,76 @@ path: {make} *required
 200 OK
 </p>
 </details>
+
+---
+### Requirements
+- Go v1.14.4
+- Docker v19.03.12
+- Docker-Compose v1.26.2
+- PostgreQSL Docker-Image
+
+---
+
+### Run the car-management-api
+To use persistant data store the PostgreSQL files location is needed. The path is working on MacOS & Linux, for Windows systems you may need to change the Postgres volume path within the docker-compose.yml. 
+
+```
+mdkir $HOME/docker/volumes/postgres
+```
+
+Copy PostgreSQL files into the directory above or create a new database. Use the migration.sql script to create the nessessary tables. 
+
+Starting the API & PostgreSQL in Docker containers:
+```
+docker-compose up
+```
+
+Stop both containers:
+```
+docker-compose down
+```
+
+---
+
+## Development Environment: 
+For development purposes it is recommended to start the PostgreSQL Database manually using docker.
+
+```
+cd $GOPATH/src/car-api
+
+docker run --name dev --env-file ./config/dbConfig env -p 5432:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data postgres 
+```
+
+
+### Access Database within Docker container: 
+1. Open new bash window: `docker container ls`
+2. `docker exec -it *POSTGRES_CONTAINER_ID* psql -U postgres -W postgres`
+3. Run SQL Querys: Example `SELECT * FROM cars;`
+
+
+The command `go run main.go` will start the Rest-API listening to port http://localhost:8080. The API will try to connect with the, make sure the Database is already running. 
+
+Activating the "mockmode" will not connect to any database, all information will be stored in memory. The port the API will listen to can be set manually. Verbose logging is also supported, for more information and usage run:
+
+ `go run main.go -h`
+
+```
+NAME:
+   Car-Management-API - A new cli application
+
+USAGE:
+   main [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.0.0
+
+COMMANDS:
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --port value   Port the Rest-API will listen on. (default: 8080)
+   --mockmode     Set 'true' to use mocked mode. (default: API will use DB connection)
+   --verbose      Set 'true' to enable verbose DEBUG-level logging. (default: Logging on WARN-level)
+   --help, -h     show help (default: false)
+   --version, -v  print the version (default: false)
+ ```
