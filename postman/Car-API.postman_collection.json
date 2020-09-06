@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5bd84f6a-b654-4b73-9f58-10677d421bb6",
+		"_postman_id": "a39f1419-a553-42ea-92f7-94911b5f1908",
 		"name": "Car-API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -92,14 +92,15 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/cars",
+					"raw": "http://localhost:8080/search/{make}",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"cars"
+						"search",
+						"{make}"
 					]
 				}
 			},
