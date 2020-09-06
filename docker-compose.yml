@@ -5,15 +5,16 @@ services:
     env_file:
       - ./config/dbConfigDocker.env
     volumes:
-      - $HOME/docker/volumes/postgres:/var/lib/postgresql/data\ postgres
+      - $HOME/docker/volumes/postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - privateNetwork
-      - publicNetwork
   app:
-    build: .
-    command: ["go", "run", "main.go"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: go run main.go --configPath ./config/dbConfigDocker.env
     volumes:
       - .:/app
     depends_on:
