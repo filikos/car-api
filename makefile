@@ -16,9 +16,8 @@ test:
 	
 	
 	# runs all tests including integration tests.
-	go test ./... --tags=integration -failfast -v
-	sleep 2
+	-go test ./... --tags=integration -failfast -v 
 
-	# TODO: commands below aren`t executed yet 
+	# stop and removes container
 	docker stop `docker ps -aqf "name=dev"`
 	docker rm `docker ps -aqf "name=dev"`
