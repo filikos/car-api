@@ -1,0 +1,24 @@
+.PHONY: up down test
+
+up:
+	docker-compose up
+
+down:
+	docker-compose down
+
+test:
+	docker run -d \
+		--name dev \
+		--env-file $${HOME}/go/src/workspace-go/coding-challenge/car-api/testdata/dbConfigTest.env \
+		-p 5432:5432 \
+		-v $${HOME}/go/src/workspace-go/coding-challenge/car-api/testdata/postgres:/var/lib/postgresql/data postgres
+	
+	
+	
+	# runs all tests including integration tests.
+	go test ./... --tags=integration -failfast -v
+	sleep 2
+
+	# TODO: commands below aren`t executed yet 
+	docker stop `docker ps -aqf "name=dev"`
+	docker rm `docker ps -aqf "name=dev"`
