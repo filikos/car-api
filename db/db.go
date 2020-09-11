@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"os"
 	"workspace-go/coding-challange/car-api/model"
@@ -12,7 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const connTimeoutSec = 5
+const (
+	connTimeoutSec = 5
+
+	dbConnectionAttemts = 5
+	retryInterval       = 2
+)
 
 // Provides functionality for initializing and execute database operations.
 type Database struct {
@@ -31,26 +37,32 @@ func InitDB(configPath string) (*Database, error) {
 	dbHost := os.Getenv("POSTGRES_HOST")
 	dbPort := os.Getenv("POSTGRES_PORT")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-	
+
+	var dbPool *sql.DB
 	url := fmt.Sprintf("user=%v dbname=%v host=%v port=%v password=%v  connect_timeout=%v sslmode=disable", dbUser, dbName, dbHost, dbPort, dbPassword, connTimeoutSec)
-	dbPool, err := sql.Open("postgres", url)
-	if err != nil {
-		return nil, err
+
+	for i := 0; i < dbConnectionAttemts; i++ {
+
+		dbPool, err = sql.Open("postgres", url)
+		if err != nil {
+			return nil, err
+		}
+
+		err = dbPool.Ping()
+		if err == nil {
+
+			dbPool.SetMaxOpenConns(7)
+			dbPool.SetMaxIdleConns(5)
+
+			log.Info("Database connection established")
+			return &Database{dbPool}, nil
+		}
+
+		log.Warn(fmt.Sprintf("Connecting to DB try: %v", i+1))
+		time.Sleep(retryInterval * time.Second)
 	}
 
-	dbPool.SetMaxOpenConns(7)
-	dbPool.SetMaxIdleConns(5)
-
-	db := &Database{}
-	db.Conn = dbPool
-
-	err = db.Conn.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Info("Database connection established")
-	return db, nil
+	return nil, fmt.Errorf("Failed to connect database. Server will be shut down. Error: %v", err)
 }
 
 func (db *Database) AddCar(newCar model.Car) (*model.Car, error) {

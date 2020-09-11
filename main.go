@@ -19,10 +19,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const (
-	dbConnectionAttemts = 5
-	retryInterval       = 2
-)
+
 
 func main() {
 
@@ -91,21 +88,9 @@ func main() {
 
 		} else {
 
-			var database *db.Database
-			var err error
-			for i := 0; i < dbConnectionAttemts; i++ {
-
-				log.Warn(fmt.Sprintf("Connecting to DB try: %v", i+1))
-				database, err = db.InitDB(c.Path("configPath"))
-				if err == nil {
-					break
-				}
-
-				time.Sleep(retryInterval * time.Second)
-			}
-
+			database, err := db.InitDB(c.Path("configPath"))
 			if err != nil {
-				log.Errorf("Failed to connect database. Server will be shut down. Error: %v", err)
+				log.Warn(err)
 				os.Exit(0)
 			}
 

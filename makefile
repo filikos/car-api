@@ -11,9 +11,7 @@ test:
 		--name dev \
 		--env-file $${HOME}/go/src/workspace-go/coding-challenge/car-api/testdata/dbConfigTest.env \
 		-p 5432:5432 \
-		-v $${HOME}/go/src/workspace-go/coding-challenge/car-api/testdata/postgres:/var/lib/postgresql/data postgres
-	
-	
+		 postgres
 	
 	# runs all tests including integration tests.
 	-go test ./... --tags=integration -failfast -v 
