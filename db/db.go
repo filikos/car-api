@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const connTimeoutSec = 5
+
 // Provides functionality for initializing and execute database operations.
 type Database struct {
 	Conn *sql.DB
@@ -30,14 +32,17 @@ func InitDB(configPath string) (*Database, error) {
 	dbPort := os.Getenv("POSTGRES_PORT")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	
-	url := fmt.Sprintf("user=%v dbname=%v host=%v port=%v password=%v sslmode=disable", dbUser, dbName, dbHost, dbPort, dbPassword)
-	conn, err := sql.Open("postgres", url)
+	url := fmt.Sprintf("user=%v dbname=%v host=%v port=%v password=%v  connect_timeout=%v sslmode=disable", dbUser, dbName, dbHost, dbPort, dbPassword, connTimeoutSec)
+	dbPool, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, err
 	}
 
+	dbPool.SetMaxOpenConns(7)
+	dbPool.SetMaxIdleConns(5)
+
 	db := &Database{}
-	db.Conn = conn
+	db.Conn = dbPool
 
 	err = db.Conn.Ping()
 	if err != nil {
