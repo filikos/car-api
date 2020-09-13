@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,10 +19,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const(
-	dbConnectionAttemts = 5
-	retryInterval = 2
-)
+
 
 func main() {
 
@@ -46,6 +45,12 @@ func main() {
 				Value:       false,
 				DefaultText: "API will use DB connection",
 			},
+			&cli.PathFlag{
+				Name:        "mockConfig",
+				Usage:       "Path to *.json file containing car data. Will be ignored if 'mockmode' is not set.",
+				Value:       "./mock/mockdata.json",
+				DefaultText: "./mock/mockdata.json",
+			},
 			&cli.BoolFlag{
 				Name:        "verbose",
 				Usage:       "Set 'true' to enable verbose DEBUG-level logging.",
@@ -55,10 +60,9 @@ func main() {
 		},
 	}
 
-
 	log.SetFormatter(&log.JSONFormatter{})
 	var connector api.Controller
-	
+
 	// Reading the CLI-Arguments, build and start the service
 	app.Action = func(c *cli.Context) error {
 
@@ -69,36 +73,26 @@ func main() {
 		}
 
 		if c.Bool("mockmode") {
-			connector = &api.MockConnector{
-				Data: model.Cars{
-					{ID: "1", Model: "A45", Make: "mercedes", Variant: "amg"},
-					{ID: "2", Model: "C", Make: "mercedes", Variant: "classic"},
-					{ID: "3", Model: "B", Make: "mercedes", Variant: "casual"},
-					{ID: "4", Model: "S", Make: "tesla", Variant: "sport"},
-					{ID: "5", Model: "3", Make: "tesla", Variant: "tour"},
-					{ID: "6", Model: "X", Make: "tesla", Variant: "midnight"},
-					{ID: "7", Model: "Y", Make: "tesla", Variant: "standart"},
-				},
+
+			mockConfig := c.Path("mockConfig")
+
+			cars, err := loadCars(mockConfig)
+			if err != nil {
+				log.Fatalf("Mockmode configuration not accepted: %v", err)
+				os.Exit(1)
 			}
+
+			connector = &api.MockConnector{
+				Data: cars,
+			}
+
 		} else {
 
-			var database *db.Database
-			var err error
-			for i := 0; i < dbConnectionAttemts; i++ {
-				
-				log.Warn(fmt.Sprintf("Connecting to DB try: %v", i+1))
-				database, err = db.InitDB(c.Path("configPath"))
-				if err == nil {
-					break
-				}
-
-				time.Sleep(retryInterval * time.Second)
-			}
-
+			database, err := db.InitDB(c.Path("configPath"))
 			if err != nil {
-				log.Errorf("Failed to connect database. Server will be shut down. Error: %v", err)
+				log.Warn(err)
 				os.Exit(0)
-			}	
+			}
 
 			log.Info("Database connection established.")
 			connector = &api.ConnectorDB{
@@ -154,4 +148,25 @@ func startServer(service api.Service, port int) {
 	defer service.Connector.CloseConnection()
 	<-done
 	log.Info("Server Stopped")
+}
+
+func loadCars(path string) (model.Cars, error) {
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	cars := model.Cars{}
+	err = json.Unmarshal([]byte(file), &cars)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infof("Loaded %v cars.", len(cars))
+	return cars, nil
 }
