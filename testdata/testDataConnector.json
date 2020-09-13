@@ -1,0 +1,62 @@
+[
+    {
+        "id": "1b707b73-b32d-41f0-90f0-db15f3b67b96",
+        "model": "A45",
+        "make": "mercedes",
+        "variant": "amg"
+    },
+    {
+        "id": "f701d72e-a1a7-4b65-9709-3e4591cc4921",
+        "model": "C",
+        "make": "mercedes",
+        "variant": "classic"
+    },
+    {
+        "id": "a866a2dc-de19-4571-acef-3f40863449c8",
+        "model": "B",
+        "make": "mercedes",
+        "variant": "casual"
+    },
+    {
+        "id": "3870d220-52cd-4104-8225-c5ec94f91e01",
+        "model": "S",
+        "make": "tesla",
+        "variant": "sport"
+    },
+    {
+        "id": "a6123cbc-ae7c-4aab-b205-3768c078627e",
+        "model": "3",
+        "make": "tesla",
+        "variant": "tour"
+    },
+    {
+        "id": "8a3ca4b2-b093-4f40-acd7-fc3a8adc9452",
+        "model": "X",
+        "make": "tesla",
+        "variant": "midnight"
+    },
+    {
+        "id": "d43a4879-e04c-4718-9c2b-0feb9d371a78",
+        "model": "Y",
+        "make": "tesla",
+        "variant": "standart"
+    },
+    {
+        "id": "7212ee3a-f926-4192-9cbc-670d424f87fa",
+        "model": "i8",
+        "make": "BMW",
+        "variant": "suv"
+    },
+    {
+        "id": "41acd4ab-d03f-4399-8360-fd21fd3f2102",
+        "model": "i8",
+        "make": "BMW",
+        "variant": "suv"
+    },
+    {
+        "id": "13ca76ee-78d0-43f8-a1fd-6be00f7f2d24",
+        "model": "i8",
+        "make": "BMW",
+        "variant": "suv"
+    }
+]
