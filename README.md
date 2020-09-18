@@ -1,5 +1,5 @@
 # Car-management-api
-This Rest-API provides basic functionality to handle car related data. The API is written in Go and is using PostgreSQL within Docker for persistant data storage. 
+This Rest-API provides basic functionality to handle car related data. The API is written in Go and is using PostgreSQL within Docker for persistant data storage.
 
 ---
 
@@ -42,8 +42,8 @@ body *required
 }
 ```
 ##### Responses:
-200 OK
-400 Bad Request
+- 200 OK
+- 400 Bad Request
 </p>
 </details>
 
@@ -75,7 +75,7 @@ Content-Type: **application/json**
 }]
 ```
 ##### Responses:
-200 OK
+- 200 OK
 </p>
 </details>
 
@@ -106,9 +106,9 @@ Note: carID has to be [RFC4122](https://tools.ietf.org/html/rfc4122) compliant.
 }
 ```
 ##### Responses:
-200 OK
-400 Bad Request
-404 Not Found
+- 200 OK
+- 400 Bad Request
+- 404 Not Found
 </p>
 </details>
 
@@ -131,9 +131,9 @@ Note: carID has to be [RFC4122](https://tools.ietf.org/html/rfc4122) compliant.
 `curl --location --request DELETE 'http://localhost:8080/cars/8ac3fc27-26a2-4fab-95d7-b6add7dcbfbf'`
 
 ##### Responses:
-204 No Content
-400 Bad Request
-404 Not Found
+- 204 No Content
+- 400 Bad Request
+- 404 Not Found
 </p>
 </details>
 
@@ -166,7 +166,7 @@ path: {make} *required
 }]
 ```
 ##### Responses:
-200 OK
+- 200 OK
 </p>
 </details>
 
@@ -216,7 +216,7 @@ docker run --name dev --env-file ./config/dbConfig env -p 5432:5432 -v $HOME/doc
 3. Run SQL Querys: Example `SELECT * FROM cars;`
 
 
-The command `go run main.go` will start the Rest-API listening to port http://localhost:8080. The API will try to connect with the, make sure the Database is already running. 
+The command `go run main.go` will start the Rest-API listen to http://localhost:8080. The API will try to connect with the, make sure the Database is already running.
 
 Activating the "mockmode" will not connect to any database, all information will be stored in memory. The port the API will listen to can be set manually. Verbose logging is also supported, for more information and usage run:
 
