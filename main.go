@@ -26,7 +26,7 @@ func main() {
 	// Set up CLI application with all available flags.
 	app := &cli.App{
 		Name:    "Car-Management-API",
-		Version: "v0.0.0",
+		Version: "v1.0.0",
 		Flags: []cli.Flag{
 			&cli.IntFlag{
 				Name:  "port",

@@ -230,7 +230,7 @@ USAGE:
    main [global options] command [command options] [arguments...]
 
 VERSION:
-   v0.0.0
+   v1.0.0
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command
