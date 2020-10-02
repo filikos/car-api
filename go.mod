@@ -3,6 +3,7 @@ module workspace-go/coding-challange/car-api
 go 1.14
 
 require (
+	github.com/dgrijalva/jwt-go v3.0.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.3.0
 	github.com/kr/pretty v0.2.0 // indirect
